@@ -1,0 +1,8 @@
+C:/Users/dell/Desktop/dlib/build/o/CMakeFiles/PACKAGE.dir
+C:/Users/dell/Desktop/dlib/build/o/CMakeFiles/INSTALL.dir
+C:/Users/dell/Desktop/dlib/build/o/CMakeFiles/ALL_BUILD.dir
+C:/Users/dell/Desktop/dlib/build/o/CMakeFiles/ZERO_CHECK.dir
+C:/Users/dell/Desktop/dlib/build/o/dlib/CMakeFiles/dlib.dir
+C:/Users/dell/Desktop/dlib/build/o/dlib/CMakeFiles/PACKAGE.dir
+C:/Users/dell/Desktop/dlib/build/o/dlib/CMakeFiles/INSTALL.dir
+C:/Users/dell/Desktop/dlib/build/o/dlib/CMakeFiles/ALL_BUILD.dir

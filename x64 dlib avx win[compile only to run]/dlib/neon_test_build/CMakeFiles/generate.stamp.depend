@@ -1,0 +1,23 @@
+# CMake generation dependency list for this directory.
+C:/ProgramData/Anaconda3/Library/share/cmake-3.12/Modules/CMakeCInformation.cmake
+C:/ProgramData/Anaconda3/Library/share/cmake-3.12/Modules/CMakeCXXInformation.cmake
+C:/ProgramData/Anaconda3/Library/share/cmake-3.12/Modules/CMakeCommonLanguageInclude.cmake
+C:/ProgramData/Anaconda3/Library/share/cmake-3.12/Modules/CMakeGenericSystem.cmake
+C:/ProgramData/Anaconda3/Library/share/cmake-3.12/Modules/CMakeInitializeConfigs.cmake
+C:/ProgramData/Anaconda3/Library/share/cmake-3.12/Modules/CMakeLanguageInformation.cmake
+C:/ProgramData/Anaconda3/Library/share/cmake-3.12/Modules/CMakeRCInformation.cmake
+C:/ProgramData/Anaconda3/Library/share/cmake-3.12/Modules/CMakeSystemSpecificInformation.cmake
+C:/ProgramData/Anaconda3/Library/share/cmake-3.12/Modules/CMakeSystemSpecificInitialize.cmake
+C:/ProgramData/Anaconda3/Library/share/cmake-3.12/Modules/Compiler/CMakeCommonCompilerMacros.cmake
+C:/ProgramData/Anaconda3/Library/share/cmake-3.12/Modules/Compiler/MSVC-C.cmake
+C:/ProgramData/Anaconda3/Library/share/cmake-3.12/Modules/Compiler/MSVC-CXX.cmake
+C:/ProgramData/Anaconda3/Library/share/cmake-3.12/Modules/Platform/Windows-MSVC-C.cmake
+C:/ProgramData/Anaconda3/Library/share/cmake-3.12/Modules/Platform/Windows-MSVC-CXX.cmake
+C:/ProgramData/Anaconda3/Library/share/cmake-3.12/Modules/Platform/Windows-MSVC.cmake
+C:/ProgramData/Anaconda3/Library/share/cmake-3.12/Modules/Platform/Windows.cmake
+C:/ProgramData/Anaconda3/Library/share/cmake-3.12/Modules/Platform/WindowsPaths.cmake
+C:/Users/dell/Desktop/dlib/build/o/CMakeFiles/3.12.3/CMakeCCompiler.cmake
+C:/Users/dell/Desktop/dlib/build/o/CMakeFiles/3.12.3/CMakeCXXCompiler.cmake
+C:/Users/dell/Desktop/dlib/build/o/CMakeFiles/3.12.3/CMakeRCCompiler.cmake
+C:/Users/dell/Desktop/dlib/build/o/CMakeFiles/3.12.3/CMakeSystem.cmake
+C:/Users/dell/Desktop/dlib/dlib/cmake_utils/test_for_neon/CMakeLists.txt
