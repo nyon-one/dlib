@@ -65,7 +65,7 @@ std::vector<point> py_remove_incoherent_edge_pixels (
     DLIB_CASSERT(num_rows(horz_gradient) == num_rows(vert_gradient));
     DLIB_CASSERT(num_columns(horz_gradient) == num_columns(vert_gradient));
     DLIB_CASSERT(angle_threshold >= 0);
-    for (auto& p : line)
+    for (const auto& p : line)
         DLIB_CASSERT(get_rect(horz_gradient).contains(p), "All line points must be inside the given images.");
 
     return remove_incoherent_edge_pixels(line, horz_gradient, vert_gradient, angle_threshold);
@@ -152,7 +152,7 @@ py::list py_extract_image_chips (
     dlib::array<numpy_image<T>> out;
     extract_image_chips(img, python_list_to_vector<chip_details>(chip_locations), out);
     py::list ret;
-    for (auto& i : out)
+    for (const auto& i : out)
         ret.append(i);
     return ret;
 }
@@ -247,7 +247,7 @@ void register_extract_image_chip (py::module& m)
     - self.angle == 0 \n\
     - self.rows and self.cols is set such that the total size of the chip is as close \n\
       to size as possible but still matches the aspect ratio of rect. \n\
-    - As long as size and the aspect ratio of of rect stays constant then \n\
+    - As long as size and the aspect ratio of rect stays constant then \n\
       self.rows and self.cols will always have the same values.  This means \n\
       that, for example, if you want all your chips to have the same dimensions \n\
       then ensure that size is always the same and also that rect always has \n\
@@ -261,7 +261,7 @@ void register_extract_image_chip (py::module& m)
                 - self.angle == 0
                 - self.rows and self.cols is set such that the total size of the chip is as close
                   to size as possible but still matches the aspect ratio of rect.
-                - As long as size and the aspect ratio of of rect stays constant then
+                - As long as size and the aspect ratio of rect stays constant then
                   self.rows and self.cols will always have the same values.  This means
                   that, for example, if you want all your chips to have the same dimensions
                   then ensure that size is always the same and also that rect always has
@@ -278,7 +278,7 @@ void register_extract_image_chip (py::module& m)
     - self.angle == angle \n\
     - self.rows and self.cols is set such that the total size of the chip is as \n\
       close to size as possible but still matches the aspect ratio of rect. \n\
-    - As long as size and the aspect ratio of of rect stays constant then \n\
+    - As long as size and the aspect ratio of rect stays constant then \n\
       self.rows and self.cols will always have the same values.  This means \n\
       that, for example, if you want all your chips to have the same dimensions \n\
       then ensure that size is always the same and also that rect always has \n\
@@ -292,7 +292,7 @@ void register_extract_image_chip (py::module& m)
                 - self.angle == angle
                 - self.rows and self.cols is set such that the total size of the chip is as
                   close to size as possible but still matches the aspect ratio of rect.
-                - As long as size and the aspect ratio of of rect stays constant then
+                - As long as size and the aspect ratio of rect stays constant then
                   self.rows and self.cols will always have the same values.  This means
                   that, for example, if you want all your chips to have the same dimensions
                   then ensure that size is always the same and also that rect always has
@@ -372,6 +372,11 @@ ensures \n\
         .def_readwrite("rows", &chip_details::rows)
         .def_readwrite("cols", &chip_details::cols);
 
+    {
+    typedef std::vector<chip_details> type;
+    py::bind_vector<type>(m, "chip_detailss", "An array of chip_details objects.")
+        .def("extend", extend_vector_with_python_list<type>);
+    }
 
     m.def("extract_image_chip", &py_extract_image_chip<uint8_t>, py::arg("img"), py::arg("chip_location"));
     m.def("extract_image_chip", &py_extract_image_chip<uint16_t>, py::arg("img"), py::arg("chip_location"));
@@ -447,6 +452,19 @@ ensures \n\
     !*/
         );
 
+    m.def("get_face_chip_details",
+          static_cast<chip_details (*)(const full_object_detection&, const unsigned long, const double)>(&get_face_chip_details),
+          py::arg("det"), py::arg("size")=200, py::arg("padding")=0.2,
+        "Given a full_object_detection det, returns a chip_details object which can be \n\
+         used to extract an image of given size and padding."
+        );
+
+    m.def("get_face_chip_details",
+          static_cast<std::vector<chip_details> (*)(const std::vector<full_object_detection>&, const unsigned long, const double)>(&get_face_chip_details),
+          py::arg("dets"), py::arg("size")=200, py::arg("padding")=0.2,
+        "Given a list of full_object_detection dets, returns a chip_details object which can be \n\
+         used to extract an image of given size and padding."
+        );
 }
 
 // ----------------------------------------------------------------------------------------
