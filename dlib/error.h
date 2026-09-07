@@ -105,14 +105,14 @@ namespace dlib
         !*/
 
         virtual ~error(
-        ) throw() {}
+        ) noexcept {}
         /*!
             ensures
                 - does nothing
         !*/
 
         const char* what(
-        ) const throw()
+        ) const noexcept
         /*!
             ensures
                 - if (info.size() != 0) then
@@ -128,7 +128,7 @@ namespace dlib
         }
 
         const char* type_to_string (
-        ) const throw()
+        ) const noexcept
         /*!
             ensures
                 - returns a string that names the contents of the type member.
@@ -271,7 +271,6 @@ namespace dlib
                           << "To prevent further fatal errors from being ignored this application will be \n"
                           << "terminated immediately and you should go fix this buggy program.\n\n"
                           << "The error message from this fatal error was:\n" << this->what() << "\n\n" << std::endl;
-                using namespace std;
                 assert(false);
                 abort();
             }

@@ -35,6 +35,7 @@
 #include "../dir_nav/dir_nav_kernel_1.cpp"
 #include "../dir_nav/dir_nav_kernel_2.cpp"
 #include "../dir_nav/dir_nav_extensions.cpp"
+#include "../fft/fft.cpp"
 #include "../linker/linker_kernel_1.cpp"
 #include "../logger/extra_logger_headers.cpp"
 #include "../logger/logger_kernel_1.cpp"
@@ -68,8 +69,9 @@
 #include "../image_saver/save_jpeg.cpp"
 #endif
 
-#ifndef DLIB_NO_GUI_SUPPORT
 #include "../gui_widgets/fonts.cpp"
+
+#ifndef DLIB_NO_GUI_SUPPORT
 #include "../gui_widgets/widgets.cpp"
 #include "../gui_widgets/drawable.cpp"
 #include "../gui_widgets/canvas_drawing.cpp"
@@ -81,16 +83,17 @@
 
 #include "../cuda/cpu_dlib.cpp"
 #include "../cuda/tensor_tools.cpp"
+#include "../data_io/image_dataset_metadata.cpp"
+#include "../data_io/mnist.cpp"
+#include "../data_io/cifar.cpp"
+#include "../svm/auto.cpp"
+#include "../global_optimization/global_function_search.cpp"
+#include "../filtering/kalman_filter.cpp"
 
 #endif // DLIB_ISO_CPP_ONLY
 
 
 
-#include "../data_io/image_dataset_metadata.cpp"
-#include "../data_io/mnist.cpp"
-#include "../global_optimization/global_function_search.cpp"
-#include "../filtering/kalman_filter.cpp"
-#include "../svm/auto.cpp"
 
 
 #define DLIB_ALL_SOURCE_END

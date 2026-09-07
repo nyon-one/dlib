@@ -21,6 +21,37 @@ namespace dlib
 
     // ------------------------------------------------------------------------------------
 
+        bool box::
+        operator== (
+            const box& rhs
+        ) const
+        {
+            return rect == rhs.rect &&
+                   parts == rhs.parts &&
+                   label == rhs.label &&
+                   difficult == rhs.difficult &&
+                   truncated == rhs.truncated &&
+                   occluded == rhs.occluded &&
+                   ignore == rhs.ignore &&
+                   pose == rhs.pose &&
+                   detection_score == rhs.detection_score &&
+                   angle == rhs.angle &&
+                   gender == rhs.gender &&
+                   age == rhs.age;
+        }
+
+    // ------------------------------------------------------------------------------------
+
+        bool box::
+        operator!= (
+            const box& rhs
+        ) const
+        {
+            return !(*this == rhs);
+        }
+
+    // ------------------------------------------------------------------------------------
+
         const std::string get_decoded_string();
         void create_image_metadata_stylesheet_file(const std::string& main_filename)
         {
@@ -60,7 +91,13 @@ namespace dlib
             fout << "<images>\n";
             for (unsigned long i = 0; i < images.size(); ++i)
             {
-                fout << "  <image file='" << images[i].filename << "'>\n";
+                fout << "  <image file='" << images[i].filename << "'";
+                if (images[i].width != 0 && images[i].height != 0)
+                {
+                    fout << " width='" << images[i].width << "'";
+                    fout << " height='" << images[i].height << "'";
+                }
+                fout << ">\n";
 
                 // save all the boxes
                 for (unsigned long j = 0; j < images[i].boxes.size(); ++j)
@@ -251,6 +288,9 @@ namespace dlib
 
                         if (atts.is_in_list("file")) temp_image.filename = atts["file"];
                         else throw dlib::error("<image> missing required attribute 'file'");
+
+                        if (atts.is_in_list("width")) temp_image.width = sa = atts["width"];
+                        if (atts.is_in_list("height")) temp_image.height = sa = atts["height"];
                     }
 
                     ts.push_back(name);
@@ -407,5 +447,4 @@ namespace dlib
 // ----------------------------------------------------------------------------------------
 
 #endif // DLIB_IMAGE_DAtASET_METADATA_CPPh_
-
 

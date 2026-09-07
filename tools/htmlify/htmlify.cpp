@@ -20,8 +20,8 @@ typedef cpp_pretty_printer::kernel_1a cprinter;
 typedef cpp_pretty_printer::kernel_2a bprinter;
 typedef dlib::map<string,string>::kernel_1a map_string_to_string;
 typedef dlib::set<string>::kernel_1a set_of_string;
-typedef queue<file>::kernel_1a queue_of_files;
-typedef queue<directory>::kernel_1a queue_of_dirs;
+typedef dlib::queue<file>::kernel_1a queue_of_files;
+typedef dlib::queue<directory>::kernel_1a queue_of_dirs;
 
 void print_manual (
 );
@@ -260,7 +260,7 @@ int main(int argc, char** argv)
             {
                 if (file_map[out_file] != in_file)
                 {
-                    // there is a file name colision in the output folder. definitly a bad thing
+                    // there is a file name colision in the output folder. definitely a bad thing
                     cout << "Error: Two of the input files have the same name and would overwrite each\n";
                     cout << "other.  They are " << in_file << " and " << file_map[out_file] << ".\n" << endl;
                     return 1;
@@ -532,7 +532,7 @@ void add_files (
             {
                 if (file_map[out_file] != in_file)
                 {
-                    // there is a file name colision in the output folder. definitly a bad thing
+                    // there is a file name colision in the output folder. definitely a bad thing
                     ostringstream sout;
                     sout << "Error: Two of the input files have the same name and would overwrite each\n";
                     sout << "other.  They are " << in_file << " and " << file_map[out_file] << ".";

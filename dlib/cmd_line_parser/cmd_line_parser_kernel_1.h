@@ -119,7 +119,7 @@ namespace dlib
                 num(0)
             { set_info_string();}
 
-            ~cmd_line_parse_error() throw() {}
+            ~cmd_line_parse_error() noexcept {}
 
             const std::basic_string<charT> item;
             const unsigned long num;
@@ -414,8 +414,6 @@ namespace dlib
         const charT** argv
     )
     {
-        using namespace std;
-
         // make sure there aren't any arguments hanging around from the last time
         // parse was called
         this->argv.clear();

@@ -93,6 +93,23 @@ namespace dlib
                 ensures
                     - returns true if label metadata is present and false otherwise.
             !*/
+
+            bool operator== (
+                const box& rhs
+            ) const;
+            /*!
+                ensures
+                    - returns true if and only if all member variables in *this compare
+                      equal to their corresponding member variables in rhs.
+            !*/
+
+            bool operator!= (
+                const box& rhs
+            ) const;
+            /*!
+                ensures
+                    - returns !(*this == rhs)
+            !*/
         };
 
     // ------------------------------------------------------------------------------------
@@ -101,7 +118,7 @@ namespace dlib
         {
             /*!
                 WHAT THIS OBJECT REPRESENTS
-                    This object represents an annotated image.   
+                    This object represents an annotated image.
             !*/
 
             image() {}
@@ -109,6 +126,8 @@ namespace dlib
 
             std::string filename;
             std::vector<box> boxes;
+            long width = 0;
+            long height = 0;
         };
 
     // ------------------------------------------------------------------------------------
@@ -171,4 +190,3 @@ namespace dlib
 #endif
 
 #endif // DLIB_IMAGE_DAtASET_METADATA_Hh_
-

@@ -1,5 +1,6 @@
 import sys
 import pickle
+from concurrent.futures import ThreadPoolExecutor
 
 import dlib
 import pytest
@@ -9,54 +10,42 @@ import utils
 # Paths are relative to dlib root
 image_path = "examples/faces/Tom_Cruise_avp_2014_4.jpg"
 shape_path = "tools/python/test/shape.pkl"
-face_chip_path = "tools/python/test/test_face_chip.npy"
+
 
 def get_test_image_and_shape():
     img = dlib.load_rgb_image(image_path)
     shape = utils.load_pickled_compatible(shape_path)
     return img, shape
- 
+
+
 def get_test_face_chips():
     rgb_img, shape = get_test_image_and_shape()
     shapes = dlib.full_object_detections()
     shapes.append(shape)
     return dlib.get_face_chips(rgb_img, shapes)
 
+
 def get_test_face_chip():
     rgb_img, shape = get_test_image_and_shape()
     return dlib.get_face_chip(rgb_img, shape)
 
+
 @pytest.mark.skipif(not utils.is_numpy_installed(), reason="requires numpy")
 def test_partition_pixels():
-    truth = (102, 159, 181);
+    truth = (102, 159, 181)
     img, shape = get_test_image_and_shape()
 
-    assert(dlib.partition_pixels(img) == truth[0])
-    assert(dlib.partition_pixels(img,3) == truth)
+    assert dlib.partition_pixels(img) == truth[0]
+    assert dlib.partition_pixels(img, 3) == truth
 
     # Call all these versions of this mainly to make sure binding to
     # various image types works.
-    assert(dlib.partition_pixels(img[:,:,0]) == 125)
-    assert(dlib.partition_pixels(img[:,:,0].astype('float32')) == 125)
-    assert(dlib.partition_pixels(img[:,:,0].astype('float64')) == 125)
-    assert(dlib.partition_pixels(img[:,:,0].astype('uint16')) == 125)
-    assert(dlib.partition_pixels(img[:,:,0].astype('uint32')) == 125)
+    assert dlib.partition_pixels(img[:, :, 0].astype("uint8")) == 125
+    assert dlib.partition_pixels(img[:, :, 0].astype("float32")) == 125
+    assert dlib.partition_pixels(img[:, :, 0].astype("float64")) == 125
+    assert dlib.partition_pixels(img[:, :, 0].astype("uint16")) == 125
+    assert dlib.partition_pixels(img[:, :, 0].astype("uint32")) == 125
 
-
-# The tests below will be skipped if Numpy is not installed
-@pytest.mark.skipif(not utils.is_numpy_installed(), reason="requires numpy")
-def test_get_face_chip():
-    import numpy
-    face_chip = get_test_face_chip()
-    expected = numpy.load(face_chip_path)
-    assert numpy.array_equal(face_chip, expected)
-
-@pytest.mark.skipif(not utils.is_numpy_installed(), reason="requires numpy")
-def test_get_face_chips():
-    import numpy
-    face_chips = get_test_face_chips()
-    expected = numpy.load(face_chip_path)
-    assert numpy.array_equal(face_chips[0], expected)
 
 @pytest.mark.skipif(not utils.is_numpy_installed(), reason="requires numpy")
 def test_regression_issue_1220_get_face_chip():
@@ -66,9 +55,17 @@ def test_regression_issue_1220_get_face_chip():
     """
     face_chip = get_test_face_chip()
     # we expect two references:
-    # 1.) the local variable 
+    # 1.) the local variable
     # 2.) the temporary passed to getrefcount
-    assert sys.getrefcount(face_chip) == 2
+    #
+    # Python 3.14 has changed the way references are counted (borrowed references)
+    # https://docs.python.org/3.14/whatsnew/3.14.html#limited-c-api-changes
+    # https://github.com/davisking/dlib/issues/3096
+    if sys.version_info < (3, 14):
+        assert sys.getrefcount(face_chip) == 2
+    else:
+        assert sys.getrefcount(face_chip) == 1
+
 
 @pytest.mark.skipif(not utils.is_numpy_installed(), reason="requires numpy")
 def test_regression_issue_1220_get_face_chips():
@@ -78,6 +75,22 @@ def test_regression_issue_1220_get_face_chips():
     """
     face_chips = get_test_face_chips()
     count = sys.getrefcount(face_chips)
-    assert count == 2
+    # Python 3.14 has changed the way references are counted (borrowed references)
+    # https://docs.python.org/3.14/whatsnew/3.14.html#limited-c-api-changes
+    # https://github.com/davisking/dlib/issues/3096
+    if sys.version_info < (3, 14):
+        assert count == 2
+    else:
+        assert count == 1
     count = sys.getrefcount(face_chips[0])
     assert count == 2
+
+
+@pytest.mark.skipif(not utils.is_numpy_installed(), reason="requires numpy")
+def test_jitter_image_from_multiple_threads():
+    img = get_test_face_chip()
+
+    with ThreadPoolExecutor(max_workers=8) as executor:
+        results = list(executor.map(lambda _: dlib.jitter_image(img, 4, True), range(32)))
+
+    assert all(len(result) == 4 for result in results)

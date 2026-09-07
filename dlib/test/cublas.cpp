@@ -58,6 +58,13 @@ namespace
         void perform_test (
         )
         {
+            if (!cuda::use_cuda()) return;
+
+            {
+                cuda::cuda_data_ptr<float> nonconst;
+                cuda::cuda_data_ptr<const float> const_ptr(nonconst);
+            }
+
             test_inv();
             {
                 resizable_tensor a(4,3), b(3,4), c(3,3);

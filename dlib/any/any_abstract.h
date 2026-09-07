@@ -20,7 +20,7 @@ namespace dlib
         !*/
 
     public:
-          virtual const char* what() const throw() { return "bad_any_cast"; }
+          virtual const char* what() const noexcept { return "bad_any_cast"; }
     };
 
 // ----------------------------------------------------------------------------------------
@@ -61,6 +61,15 @@ namespace dlib
                   contents of item.  That is, this function performs a deep
                   copy and therefore does not result in *this containing
                   any kind of reference to item.
+        !*/
+
+        any_function (
+            any_function&& item
+        );
+        /*!
+            ensures
+                - #item.is_empty() == true
+                - moves item into *this.
         !*/
 
         template < typename T >
@@ -164,16 +173,6 @@ namespace dlib
         !*/
 
     };
-
-// ----------------------------------------------------------------------------------------
-
-    inline void swap (
-        any& a,
-        any& b
-    ) { a.swap(b); }
-    /*!
-        provides a global swap function
-    !*/
 
 // ----------------------------------------------------------------------------------------
 

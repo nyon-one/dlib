@@ -10,82 +10,12 @@
 namespace dlib
 {
 
-// ----------------------------------------------------------------------------------------
-
-    static const unichar SURROGATE_FIRST_TOP = 0xD800;
-    static const unichar SURROGATE_SECOND_TOP = 0xDC00;
-    static const unichar SURROGATE_CLEARING_MASK = 0x03FF;
-    static const unichar SURROGATE_TOP = SURROGATE_FIRST_TOP;
-    static const unichar SURROGATE_END = 0xE000;
-    static const unichar SMP_TOP = 0x10000;
-    static const int VALID_BITS = 10;
-
-// ----------------------------------------------------------------------------------------
-
-    template <typename T> bool is_surrogate(T ch)
-    {
-        return (zero_extend_cast<unichar>(ch) >= SURROGATE_TOP && 
-                zero_extend_cast<unichar>(ch) < SURROGATE_END);
-    }
-
-// ----------------------------------------------------------------------------------------
-
-    template <typename T> unichar surrogate_pair_to_unichar(T first, T second)
-    {
-        return ((first & SURROGATE_CLEARING_MASK) << VALID_BITS) | ((second & SURROGATE_CLEARING_MASK) + SMP_TOP);
-    }
-    //110110 0000000000
-    //110111 0000000000
-
-// ----------------------------------------------------------------------------------------
-
     void unichar_to_surrogate_pair(unichar input, unichar &first, unichar &second)
     {
+        using namespace unicode_helpers;
         first = ((input - SMP_TOP) >> VALID_BITS) | SURROGATE_FIRST_TOP;
         second = (input & SURROGATE_CLEARING_MASK) | SURROGATE_SECOND_TOP;
     }
-
-// ----------------------------------------------------------------------------------------
-
-    template <int N> void wstr2ustring_t(const wchar_t *src, size_t src_len, ustring &dest);
-
-    template <> void wstr2ustring_t<4>(const wchar_t *src, size_t , ustring &dest)
-    {
-        dest.assign((const unichar *)(src));
-    }
-
-    template <> void wstr2ustring_t<2>(const wchar_t *src, size_t src_len, ustring &dest)
-    {
-        size_t wlen = 0;
-        for (size_t i = 0; i < src_len; i++)
-        {
-            is_surrogate(src[i]) ? i++, wlen++ : wlen++;
-        }
-        dest.resize(wlen);
-        for (size_t i = 0, ii = 0; ii < src_len; ++i)
-        {
-            if (is_surrogate(src[ii]))
-            {
-                dest[i] = surrogate_pair_to_unichar(src[ii], src[ii+1]);
-                ii += 2;
-            }else
-            {
-                dest[i] = zero_extend_cast<unichar>(src[ii]);
-                ii++;
-            }
-        }
-    }
-
-// ----------------------------------------------------------------------------------------
-
-    const ustring convert_wstring_to_utf32(const std::wstring &src)
-    {
-        ustring dest;
-        wstr2ustring_t<sizeof(wchar_t)>(src.c_str(), src.size(), dest);
-        return dest;
-    }
-
-// ----------------------------------------------------------------------------------------
 
     template <int N> struct ustring2wstr
     {
@@ -100,7 +30,7 @@ namespace dlib
             wlen = 0;
             for (size_t i = 0; i < src.length(); ++i)
             {
-                if (src[i] < SMP_TOP) wlen++;
+                if (src[i] < unicode_helpers::SMP_TOP) wlen++;
                 else wlen += 2;
             }
             wstr = new wchar_t[wlen+1];
@@ -109,10 +39,11 @@ namespace dlib
             size_t wi = 0;
             for (size_t i = 0; i < src.length(); ++i)
             {
-                if (src[i] < SMP_TOP)
+                if (src[i] < unicode_helpers::SMP_TOP)
                 {
                     wstr[wi++] = (wchar_t)src[i];
-                }else
+                }
+                else
                 {
                     unichar high, low;
                     unichar_to_surrogate_pair(src[i], high, low);
@@ -140,6 +71,20 @@ namespace dlib
 
 // ----------------------------------------------------------------------------------------
 
+    const ustring convert_utf8_to_utf32(const std::string& str)
+    {
+        return convert_to_utf32<char>(str);
+    }
+
+// ----------------------------------------------------------------------------------------
+
+    const ustring convert_wstring_to_utf32(const std::wstring& str)
+    {
+        return convert_to_utf32<wchar_t>(str);
+    }
+
+// ----------------------------------------------------------------------------------------
+
     const std::wstring convert_utf32_to_wstring(const ustring &src)
     {
         ustring2wstr<sizeof(wchar_t)> conv(src);
@@ -151,20 +96,37 @@ namespace dlib
 
     const std::wstring convert_mbstring_to_wstring(const std::string &src)
     {
-        std::vector<wchar_t> wstr(src.length()+5);
-        std::mbstowcs(&wstr[0], src.c_str(), src.length()+1);
-        return std::wstring(&wstr[0]);
+        // Compute dst length
+        std::mbstate_t st{};
+        const char* p = src.c_str();
+        size_t n = std::mbsrtowcs(nullptr, &p, 0, &st);
+        if (n == static_cast<size_t>(-1)) throw std::runtime_error("Invalid multibyte sequence / wrong locale");
+
+        // Convert
+        std::wstring out(n, L'\0');
+        st = std::mbstate_t{};
+        n  = std::mbsrtowcs(&out[0], &p, out.size(), &st);
+        if (n == static_cast<size_t>(-1)) throw std::runtime_error("Conversion failed");
+        return out;
     }
 
 // ----------------------------------------------------------------------------------------
 
     const std::string convert_wstring_to_mbstring(const std::wstring &src)
     {
-        using namespace std;
-        std::string str;
-        str.resize((src.length() + 1) * MB_CUR_MAX);
-        wcstombs(&str[0], src.c_str(), str.size());
-        return std::string(&str[0]);
+        std::mbstate_t st{};
+        const wchar_t* p = src.c_str();
+
+        // Compute length
+        size_t n = std::wcsrtombs(nullptr, &p, 0, &st);
+        if (n == static_cast<std::size_t>(-1)) throw std::runtime_error("Invalid wide sequence / locale mismatch");
+
+        // Convert
+        std::string out(n, '\0');
+        st = std::mbstate_t{};
+        n  = std::wcsrtombs(&out[0], &p, out.size(), &st);
+        if (n == static_cast<std::size_t>(-1)) throw std::runtime_error("Conversion failed");
+        return out;
     }
 
 // ----------------------------------------------------------------------------------------

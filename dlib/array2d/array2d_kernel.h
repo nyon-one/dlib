@@ -117,14 +117,16 @@ namespace dlib
         private:
 
             row(T* data_, long cols) : data(data_), nc_(cols) {}
+            row(row&& r) = default;
+            row& operator=(row&& r) = default;
 
-            T* data; 
-            long nc_;
+            T* data = nullptr;
+            long nc_ = 0;
 
 
             // restricted functions
-            row(){}
-            row& operator=(row&);
+            row(const row&) = delete;
+            row& operator=(const row&) = delete;
         };
 
         // -----------------------------------
@@ -318,7 +320,7 @@ namespace dlib
         size_t size (
         ) const { return static_cast<size_t>(nc_) * static_cast<size_t>(nr_); }
 
-        long width_step (
+        size_t width_step (
         ) const
         {
             return nc_*sizeof(T);
@@ -394,7 +396,7 @@ namespace dlib
                 serialize(item.element(),out);
             item.reset();
         }
-        catch (serialization_error e)
+        catch (serialization_error& e)
         { 
             throw serialization_error(e.info + "\n   while serializing object of type array2d"); 
         }
@@ -432,7 +434,7 @@ namespace dlib
                 deserialize(item.element(),in); 
             item.reset();
         }
-        catch (serialization_error e)
+        catch (serialization_error& e)
         { 
             item.clear();
             throw serialization_error(e.info + "\n   while deserializing object of type array2d"); 

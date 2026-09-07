@@ -225,8 +225,16 @@
                   <link>dnn_introduction2_ex.cpp.html</link>
                </item>
                <item>
+                  <name>Deep Learning Introduction Part 3</name>
+                  <link>dnn_introduction3_ex.cpp.html</link>
+               </item>
+               <item>
                   <name>Deep Learning Imagenet Classifier</name>
                   <link>dnn_imagenet_ex.cpp.html</link>
+               </item>
+               <item>
+                  <name>Deep Learning DCGAN</name>
+                  <link>dnn_dcgan_train_ex.cpp.html</link>
                </item>
                <item>
                   <name>Deep Learning Imagenet Trainer </name>
@@ -257,6 +265,14 @@
                   <link>dnn_semantic_segmentation_ex.cpp.html</link>
                </item>
                <item>
+                  <name>Deep Learning Instance Segmentation</name>
+                  <link>dnn_instance_segmentation_ex.cpp.html</link>
+               </item>
+               <item>
+                  <name>Deep Learning Instance Segmentation Trainer</name>
+                  <link>dnn_instance_segmentation_train_ex.cpp.html</link>
+               </item>
+               <item>
                   <name>Deep Learning Vehicle Detection</name>
                   <link>dnn_mmod_find_cars_ex.cpp.html</link>
                </item>
@@ -279,6 +295,22 @@
                <item>
                   <name>Deep Learning Max-Margin Object Detection</name>
                   <link>dnn_mmod_ex.cpp.html</link>
+               </item>
+               <item>
+                  <name>Deep learning Language Modeling</name>
+                  <link>slm_basic_train_ex.cpp.html</link>
+               </item>
+               <item>
+                  <name>Deep learning Language Modeling Advanced</name>
+                  <link>slm_advanced_train_ex.cpp.html</link>
+               </item>
+               <item>
+                  <name>Self-supervised deep feature learning</name>
+                  <link>dnn_self_supervised_learning_ex.cpp.html</link>
+               </item>
+               <item>
+                  <name>Training a YOLO object detector</name>
+                  <link>dnn_yolo_train_ex.cpp.html</link>
                </item>
 
                <item>
@@ -625,6 +657,55 @@
                <item>
                   <name>Multithreaded Object</name>
                   <link>multithreaded_object_ex.cpp.html</link>
+               </item>
+
+               <item>
+                  <name>FFMPEG: query codec capability</name>
+                  <link>ffmpeg_info_ex.cpp.html</link>
+               </item>
+               <item>
+                  <name>FFMPEG: capture audio</name>
+                  <link>ffmpeg_file_to_speaker_ex.cpp.html</link>
+               </item>
+               <item>
+                  <name>FFMPEG: capture audio to file</name>
+                  <link>ffmpeg_microphone_to_file_ex.cpp.html</link>
+               </item>
+               <item>
+                  <name>FFMPEG: RTSP</name>
+                  <link>ffmpeg_rtsp_ex.cpp.html</link>
+               </item>
+               <item>
+                  <name>FFMPEG: screen grabbing</name>
+                  <link>ffmpeg_screen_grab_ex.cpp.html</link>
+               </item>
+               <item>
+                  <name>FFMPEG: read video with demuxer</name>
+                  <link>ffmpeg_video_demuxing_ex.cpp.html</link>
+               </item>
+               <item>
+                  <name>FFMPEG: demux images and audio</name>
+                  <link>ffmpeg_video_demuxing2_ex.cpp.html</link>
+               </item>
+               <item>
+                  <name>FFMPEG: decode video</name>
+                  <link>ffmpeg_video_decoding_ex.cpp.html</link>
+               </item>
+               <item>
+                  <name>FFMPEG: decode video another example</name>
+                  <link>ffmpeg_video_decoding2_ex.cpp.html</link>
+               </item>
+               <item>
+                  <name>FFMPEG: encode video</name>
+                  <link>ffmpeg_video_encoding_ex.cpp.html</link>
+               </item>
+               <item>
+                  <name>FFMPEG: encode video with muxer</name>
+                  <link>ffmpeg_video_muxing_ex.cpp.html</link>
+               </item>
+               <item>
+                  <name>FFMPEG: face pose from webcam</name>
+                  <link>ffmpeg_webcam_face_pose_ex.cpp.html</link>
                </item>
             </sub>
          </item>

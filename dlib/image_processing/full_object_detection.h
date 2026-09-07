@@ -13,8 +13,8 @@ namespace dlib
 
 // ----------------------------------------------------------------------------------------
 
-    const static point OBJECT_PART_NOT_PRESENT(0x7FFFFFFF,
-                                                0x7FFFFFFF);
+    const static dpoint OBJECT_PART_NOT_PRESENT(0x7FFFFFFFFFFFF,
+                                                0x7FFFFFFFFFFFF);
 
 // ----------------------------------------------------------------------------------------
 
@@ -23,8 +23,14 @@ namespace dlib
     public:
         full_object_detection(
             const rectangle& rect_,
-            const std::vector<point>& parts_
+            const std::vector<dpoint>& parts_
         ) : rect(rect_), parts(parts_) {}
+
+        full_object_detection(
+            const rectangle& rect_,
+            const std::vector<point>& parts_
+        ) : rect(rect_), parts (parts_.begin(), parts_.end())
+        {}
 
         full_object_detection(){}
 
@@ -36,13 +42,13 @@ namespace dlib
         rectangle& get_rect() { return rect; }
         unsigned long num_parts() const { return parts.size(); }
 
-        const point& part(
+        const dpoint& part(
             unsigned long idx
         ) const 
         { 
             // make sure requires clause is not broken
             DLIB_ASSERT(idx < num_parts(),
-                "\t point full_object_detection::part()"
+                "\t dpoint full_object_detection::part()"
                 << "\n\t Invalid inputs were given to this function "
                 << "\n\t idx:         " << idx  
                 << "\n\t num_parts(): " << num_parts()  
@@ -51,13 +57,13 @@ namespace dlib
             return parts[idx]; 
         }
 
-        point& part(
+        dpoint& part(
             unsigned long idx
         )  
         { 
             // make sure requires clause is not broken
             DLIB_ASSERT(idx < num_parts(),
-                "\t point full_object_detection::part()"
+                "\t dpoint full_object_detection::part()"
                 << "\n\t Invalid inputs were given to this function "
                 << "\n\t idx:         " << idx  
                 << "\n\t num_parts(): " << num_parts()  
@@ -71,7 +77,7 @@ namespace dlib
             std::ostream& out
         )
         {
-            int version = 1;
+            int version = 2;
             serialize(version, out);
             serialize(item.rect, out);
             serialize(item.parts, out);
@@ -84,11 +90,25 @@ namespace dlib
         {
             int version = 0;
             deserialize(version, in);
-            if (version != 1)
+
+            if (version != 1 && version != 2)
                 throw serialization_error("Unexpected version encountered while deserializing dlib::full_object_detection.");
 
             deserialize(item.rect, in);
-            deserialize(item.parts, in);
+
+            // Legacy support: read vector<point, 2> and cast to vector<dpoint, 2>
+            if (version == 1) 
+            {
+                std::vector<point> legacy_parts;
+                deserialize(legacy_parts, in);
+                item.parts = std::vector<dpoint>(legacy_parts.begin(), legacy_parts.end());
+            }
+            else 
+            { 
+                // version 2 - deserialize into vector<dpoint, 2>
+                deserialize(item.parts, in);
+            }
+
         }
 
         bool operator==(
@@ -109,7 +129,7 @@ namespace dlib
 
     private:
         rectangle rect;
-        std::vector<point> parts;  
+        std::vector<dpoint> parts;  
     };
 
 // ----------------------------------------------------------------------------------------
@@ -181,6 +201,60 @@ namespace dlib
             deserialize(item.label, in);
         else
             item.label = "";
+    }
+
+// ----------------------------------------------------------------------------------------
+
+    struct yolo_rect
+    {
+        yolo_rect() = default;
+        yolo_rect(const drectangle& r) : rect(r) {}
+        yolo_rect(const drectangle& r, double score) : rect(r),detection_confidence(score) {}
+        yolo_rect(const drectangle& r, double score, const std::string& label) : rect(r),detection_confidence(score), label(label) {}
+        yolo_rect(const mmod_rect& r) : rect(r.rect), detection_confidence(r.detection_confidence), ignore(r.ignore), label(r.label) {}
+
+        drectangle rect;
+        double detection_confidence = 0;
+        bool ignore = false;
+        std::string label;
+        std::vector<std::pair<double, std::string>> labels;
+
+        operator rectangle() const { return rect; }
+        bool operator == (const yolo_rect& rhs) const
+        {
+            return rect == rhs.rect
+                   && detection_confidence == rhs.detection_confidence
+                   && ignore == rhs.ignore
+                   && label == rhs.label;
+        }
+        bool operator<(const yolo_rect& rhs) const
+        {
+            return detection_confidence < rhs.detection_confidence;
+        }
+    };
+
+    inline void serialize(const yolo_rect& item, std::ostream& out)
+    {
+        int version = 1;
+        serialize(version, out);
+        serialize(item.rect, out);
+        serialize(item.detection_confidence, out);
+        serialize(item.ignore, out);
+        serialize(item.label, out);
+        serialize(item.labels, out);
+    }
+
+    inline void deserialize(yolo_rect& item, std::istream& in)
+    {
+        int version = 0;
+        deserialize(version, in);
+        if (version != 1)
+            throw serialization_error("Unexpected version found while deserializing dlib::yolo_rect");
+        deserialize(item.rect, in);
+        deserialize(item.detection_confidence, in);
+        deserialize(item.ignore, in);
+        deserialize(item.label, in);
+        deserialize(item.labels, in);
     }
 
 // ----------------------------------------------------------------------------------------

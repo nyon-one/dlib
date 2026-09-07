@@ -20,10 +20,17 @@ using namespace dlib;
 extern const char* VERSION;
 
 // ----------------------------------------------------------------------------------------
+constexpr size_t MAX_UNDO_HISTORY = 10;
+
+std::vector<dlib::image_display::overlay_rect> get_overlays (
+    const dlib::image_dataset_metadata::image& data,
+    color_mapper& string_to_color 
+);
 
 metadata_editor::
 metadata_editor(
-    const std::string& filename_
+    const std::string& filename_,
+    const std::string& font_path
 ) : 
     mbar(*this),
     lb_images(*this),
@@ -36,6 +43,26 @@ metadata_editor(
 {
     file metadata_file(filename_);
     filename = metadata_file.full_name();
+
+    // Set the custom label fonts
+    if (!font_path.empty())
+    {
+        const auto custom_font = std::make_shared<dlib::bdf_font>();
+        std::ifstream fin(font_path);
+        if (fin.good())
+        {
+            custom_font->read_bdf_file(fin, 0xFFFF);
+            custom_font->adjust_metrics();
+            font = std::move(custom_font);
+        }
+        else
+        {
+            std::cerr << "WARNING: could not open file '" + font_path + "', using default font\n.";
+        }
+    }
+    display.set_main_font(font);
+    overlay_label.set_main_font(font);
+
     // Make our current directory be the one that contains the metadata file.  We 
     // do this because that file might contain relative paths to the image files
     // we are supposed to be loading.
@@ -150,6 +177,8 @@ file_save_as()
 void metadata_editor::
 remove_selected_images()
 {
+    clear_undo_history();
+
     dlib::queue<unsigned long>::kernel_1a list;
     lb_images.get_selected(list);
     list.reset();
@@ -224,7 +253,12 @@ void propagate_boxes(
 
     array2d<rgb_pixel> img1, img2;
     dlib::load_image(img1, data.images[prev].filename);
+    data.images[prev].width = img1.nc();
+    data.images[prev].height = img1.nr();
+
     dlib::load_image(img2, data.images[next].filename);
+    data.images[next].width = img2.nc();
+    data.images[next].height = img2.nr();
     for (unsigned long i = 0; i < data.images[prev].boxes.size(); ++i)
     {
         correlation_tracker tracker;
@@ -335,12 +369,21 @@ on_keydown (
             if (keyboard_jump_pos >= metadata.images.size())
                 keyboard_jump_pos = metadata.images.size()-1;
 
-            image_pos = keyboard_jump_pos;
-            select_image(image_pos);
+            select_image(keyboard_jump_pos);
         }
         else
         {
             last_keyboard_jump_pos_update = 0;
+        }
+
+        if (key == '=')
+        {
+            display.zoom_in();
+        }
+
+        if (key == '-')
+        {
+            display.zoom_out();
         }
 
         if (key == 'd' && (state&base_window::KBD_MOD_ALT))
@@ -352,6 +395,25 @@ on_keydown (
         {
             display_equialized_image = !display_equialized_image;
             select_image(image_pos);
+        }
+
+        if ((key == 'z' || key == 'Z') && (state&base_window::KBD_MOD_CONTROL) && !overlay_label.has_input_focus())
+        {
+            if (state&base_window::KBD_MOD_SHIFT)
+            {
+                perform_redo();
+            }
+            else
+            {
+                perform_undo();
+            }
+            return;
+        }
+
+        if ((key == 'y' || key == 'Y') && (state&base_window::KBD_MOD_CONTROL) && !overlay_label.has_input_focus())
+        {
+            perform_redo();
+            return;
         }
 
         // Make 'w' and 's' act like KEY_UP and KEY_DOWN
@@ -496,6 +558,11 @@ load_image(
     if (idx >= metadata.images.size())
         return;
 
+    if (image_pos != idx)
+    {
+        clear_undo_history();
+    }
+
     image_pos = idx; 
 
     array2d<rgb_pixel> img;
@@ -503,6 +570,8 @@ load_image(
     try
     {
         dlib::load_image(img, metadata.images[idx].filename);
+        metadata.images[idx].width = img.nc();
+        metadata.images[idx].height = img.nr();
         set_title(metadata.name + " #"+cast_to_string(idx)+": " +metadata.images[idx].filename);
     }
     catch (exception& e)
@@ -519,12 +588,75 @@ load_image(
 // ----------------------------------------------------------------------------------------
 
 void metadata_editor::
+clear_undo_history()
+{
+    undo_history.clear();
+    redo_history.clear();
+}
+
+// ----------------------------------------------------------------------------------------
+
+void metadata_editor::
+save_undo_state (
+    const box_history_entry& boxes
+)
+{
+    undo_history.push_back(boxes);
+    if (undo_history.size() > MAX_UNDO_HISTORY)
+        undo_history.erase(undo_history.begin());
+    redo_history.clear();
+}
+
+// ----------------------------------------------------------------------------------------
+
+void metadata_editor::
+perform_undo()
+{
+    if (!undo_history.empty())
+    {
+        redo_history.push_back(metadata.images[image_pos].boxes);
+        if (redo_history.size() > MAX_UNDO_HISTORY)
+            redo_history.erase(redo_history.begin());
+
+        metadata.images[image_pos].boxes = undo_history.back();
+        undo_history.pop_back();
+        display.clear_overlay();
+        display.add_overlay(get_overlays(metadata.images[image_pos], string_to_color));
+    }
+}
+
+// ----------------------------------------------------------------------------------------
+
+void metadata_editor::
+perform_redo()
+{
+    if (!redo_history.empty())
+    {
+        undo_history.push_back(metadata.images[image_pos].boxes);
+        if (undo_history.size() > MAX_UNDO_HISTORY)
+            undo_history.erase(undo_history.begin());
+
+        metadata.images[image_pos].boxes = redo_history.back();
+        redo_history.pop_back();
+        display.clear_overlay();
+        display.add_overlay(get_overlays(metadata.images[image_pos], string_to_color));
+    }
+}
+
+// ----------------------------------------------------------------------------------------
+
+void metadata_editor::
 load_image_and_set_size(
     unsigned long idx
 )
 {
     if (idx >= metadata.images.size())
         return;
+
+    if (image_pos != idx)
+    {
+        clear_undo_history();
+    }
 
     image_pos = idx; 
 
@@ -533,6 +665,8 @@ load_image_and_set_size(
     try
     {
         dlib::load_image(img, metadata.images[idx].filename);
+        metadata.images[idx].width = img.nc();
+        metadata.images[idx].height = img.nr();
         set_title(metadata.name + " #"+cast_to_string(idx)+": " +metadata.images[idx].filename);
     }
     catch (exception& e)
@@ -576,6 +710,7 @@ on_overlay_rects_changed(
         const std::vector<image_display::overlay_rect>& rects = display.get_overlay_rects();
 
         std::vector<box>& boxes = metadata.images[image_pos].boxes;
+        std::vector<box> old_boxes = boxes;
 
         boxes.clear();
         for (unsigned long i = 0; i < rects.size(); ++i)
@@ -586,6 +721,11 @@ on_overlay_rects_changed(
             temp.parts = rects[i].parts;
             temp.ignore = rects[i].crossed_out;
             boxes.push_back(temp);
+        }
+
+        if (old_boxes != boxes)
+        {
+            save_undo_state(old_boxes);
         }
     }
 }
@@ -658,6 +798,8 @@ display_about(
                         "and drag allows you to navigate around the image.  Holding ctrl and "
                         "left clicking a rectangle will give it the label from the Next Label field. "
                         "Holding shift + right click and then dragging allows you to move things around. "
+                        "Pressing ctrl+z will undo changes to the current image's boxes and pressing "
+                        "ctrl+y or ctrl+shift+z will redo them. "
                         "Holding ctrl and pressing the up or down keyboard keys will propagate "
                         "rectangle labels from one image to the next and also skip empty images. " 
                         "Similarly, holding ctrl+shift will propagate entire boxes via a visual tracking " 
@@ -672,4 +814,3 @@ display_about(
 }
 
 // ----------------------------------------------------------------------------------------
-
